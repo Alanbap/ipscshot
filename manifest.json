@@ -2,7 +2,7 @@
   "name": "IPSCShot Inteligente",
   "short_name": "IPSCShot",
   "description": "Shot timer profissional para IPSC e modalidade Duelo",
-  "start_url": "/index.html",
+  "start_url": "/ipscshot/index.html",
   "display": "standalone",
   "background_color": "#0a0c10",
   "theme_color": "#e8a020",
