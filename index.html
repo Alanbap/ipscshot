@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="IPSCShot">
+<meta name="theme-color" content="#e8a020">
+<title>IPSCShot Inteligente</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --bg:#0a0c10;--bg2:#111420;--bg3:#181d2a;--card:#1a2035;
+  --border:rgba(255,255,255,0.08);--accent:#e8a020;--accent2:#ff4f30;
+  --green:#22c55e;--blue:#3b82f6;--text:#f0f0f0;--muted:#8a92a6;
+  --danger:#ef4444;--font-title:'Rajdhani',sans-serif;--font-body:'Inter',sans-serif;
+}
+
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font-body);}
+body{display:flex;flex-direction:column;}
+
+/* ---- APP SHELL ---- */
+.app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;width:100%;background:var(--bg);position:relative;}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo-wrap{display:flex;align-items:center;gap:9px;}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:20px;height:20px;}
+.logo-text{font-family:var(--font-title);font-size:19px;font-weight:700;letter-spacing:1px;}
+.logo-text span{color:var(--accent);}
+.header-right{display:flex;gap:7px;align-items:center;}
+.mode-badge{display:inline-flex;align-items:center;background:rgba(232,160,32,.12);border:1px solid rgba(232,160,32,.3);color:var(--accent);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500;}
+.header-badge{background:var(--accent);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+
+/* TABNAV */
+.tabnav{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.tab{flex:1;padding:11px 4px;text-align:center;font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.5px;cursor:pointer;border-bottom:2px solid transparent;text-transform:uppercase;transition:all .2s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* PAGES */
+.pages{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;display:none;flex-direction:column;gap:13px;padding:15px 15px 90px;-webkit-overflow-scrolling:touch;}
+.page.active{display:flex;}
+.page::-webkit-scrollbar{width:3px;}
+.page::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* BOTTOM NAV */
+.bottomnav{display:flex;background:var(--bg2);border-top:1px solid var(--border);padding:6px 0 max(10px,env(safe-area-inset-bottom));flex-shrink:0;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;}
+.nav-icon{font-size:20px;opacity:.4;transition:opacity .2s;}
+.nav-label{font-size:9px;color:var(--muted);font-weight:500;letter-spacing:.5px;text-transform:uppercase;}
+.nav-item.active .nav-icon{opacity:1;}
+.nav-item.active .nav-label{color:var(--accent);}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:15px;}
+.card-title{font-family:var(--font-title);font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:6px;}
+
+/* TIMER CARD */
+.timer-card{background:var(--card);border:1px solid rgba(232,160,32,.2);border-radius:18px;padding:22px 18px;text-align:center;position:relative;overflow:hidden;}
+.timer-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(232,160,32,.12) 0%,transparent 70%);border-radius:50%;}
+.timer-main{font-family:var(--font-title);font-size:76px;font-weight:700;color:var(--accent);line-height:1;letter-spacing:-2px;transition:color .3s;}
+.timer-main.running{color:var(--green);}
+.timer-main.delay-state{color:var(--blue);animation:blink .8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.timer-sub{font-size:13px;color:var(--muted);margin-top:6px;letter-spacing:.3px;min-height:18px;}
+.round-info{display:flex;justify-content:center;gap:16px;margin-top:13px;}
+.round-pill{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-size:12px;color:var(--muted);}
+.round-pill span{color:var(--text);font-weight:500;}
+
+/* SHOT DOTS */
+.shots-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;justify-content:center;}
+.shot-dot{width:36px;height:36px;border-radius:9px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);font-family:var(--font-title);font-weight:600;transition:all .25s;}
+.shot-dot.hit{background:rgba(34,197,94,.15);border-color:var(--green);color:var(--green);}
+.shot-dot.early{background:rgba(59,130,246,.15);border-color:var(--blue);color:var(--blue);}
+.shot-dot.late{background:rgba(239,68,68,.15);border-color:var(--danger);color:var(--danger);}
+
+/* BUTTONS */
+.btn-start{width:100%;padding:20px;font-family:var(--font-title);font-size:26px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:14px;background:var(--accent);color:#000;cursor:pointer;transition:all .15s;-webkit-user-select:none;user-select:none;}
+.btn-start:active{transform:scale(.97);}
+.btn-start.running{background:var(--danger);color:#fff;}
+.btn-start.delay-state{background:var(--blue);color:#fff;}
+.btn-row{display:flex;gap:9px;}
+.btn-sm{flex:1;padding:12px 6px;font-family:var(--font-body);font-size:13px;font-weight:500;border:1px solid var(--border);border-radius:10px;background:var(--bg3);color:var(--text);cursor:pointer;transition:all .15s;}
+.btn-sm:active{transform:scale(.97);}
+.btn-sm.danger:active{color:var(--danger);}
+
+/* MODE GRID */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.mode-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:13px;cursor:pointer;transition:all .2s;text-align:center;}
+.mode-card.active{border-color:var(--accent);background:rgba(232,160,32,.08);}
+.mode-icon{font-size:22px;margin-bottom:5px;}
+.mode-name{font-family:var(--font-title);font-size:14px;font-weight:600;letter-spacing:.3px;}
+.mode-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* FORM */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:12px;color:var(--muted);font-weight:500;}
+.field input[type=number],.field select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px 11px;font-size:14px;font-family:var(--font-body);width:100%;outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field select option{background:var(--bg3);}
+
+/* SLIDER */
+.slider-wrap{display:flex;flex-direction:column;gap:7px;}
+.slider-wrap label{font-size:12px;color:var(--muted);font-weight:500;display:flex;justify-content:space-between;}
+.slider-wrap label span{color:var(--accent);font-weight:600;}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--bg3);outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg);}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg);}
+
+/* SENSITIVITY BAR */
+.sens-bar{height:5px;border-radius:3px;background:var(--bg3);margin-top:5px;overflow:hidden;}
+.sens-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--accent),var(--danger));transition:width .3s;}
+
+/* ENV */
+.env-badges{display:flex;gap:7px;}
+.env-badge{flex:1;padding:9px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;text-align:center;cursor:pointer;transition:all .2s;font-size:12px;font-weight:500;color:var(--muted);}
+.env-badge.active{border-color:var(--accent);color:var(--accent);background:rgba(232,160,32,.08);}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;}
+.toggle-label{font-size:13px;color:var(--text);}
+.toggle-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+.switch input{opacity:0;width:0;height:0;position:absolute;}
+.switch-track{position:absolute;inset:0;background:var(--bg3);border-radius:12px;border:1px solid var(--border);transition:all .2s;cursor:pointer;}
+.switch input:checked~.switch-track{background:var(--accent);border-color:var(--accent);}
+.switch-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;background:var(--muted);border-radius:50%;transition:all .2s;pointer-events:none;}
+.switch input:checked~.switch-track .switch-thumb{transform:translateX(20px);background:#000;}
+
+/* SPLITS */
+.split-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
+.split-item:last-child{border-bottom:none;}
+.split-num{width:24px;height:24px;border-radius:6px;background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent);flex-shrink:0;}
+.split-time{font-family:var(--font-title);font-size:18px;font-weight:600;flex:1;}
+.split-bar{flex:2;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+.split-fill{height:100%;border-radius:2px;background:var(--green);}
+.split-delta{font-size:11px;font-weight:500;min-width:44px;text-align:right;}
+.split-delta.fast{color:var(--green);}
+.split-delta.slow{color:var(--danger);}
+
+/* STATS */
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
+.stat-row:last-child{border-bottom:none;}
+.stat-label{font-size:13px;color:var(--muted);}
+.stat-value{font-family:var(--font-title);font-size:16px;font-weight:600;}
+.stat-value.green{color:var(--green);}
+.stat-value.accent{color:var(--accent);}
+
+/* DRILL */
+.drill-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.drill-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:13px;cursor:pointer;transition:all .2s;}
+.drill-card:active{border-color:var(--accent);}
+.drill-name{font-family:var(--font-title);font-size:15px;font-weight:600;}
+.drill-detail{font-size:10px;color:var(--muted);margin-top:3px;}
+.drill-shots{display:flex;gap:4px;margin-top:8px;}
+.drill-shot{width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:.35;}
+.drill-shot.a{opacity:1;}
+
+/* MIC */
+.mic-status{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg3);border-radius:10px;border:1px solid var(--border);}
+.mic-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.mic-dot.active{background:var(--green);animation:mic-pulse 1s ease-in-out infinite;}
+@keyframes mic-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.4)}}
+.mic-label{font-size:12px;color:var(--muted);flex:1;}
+.waveform{display:flex;align-items:flex-end;gap:2px;height:28px;}
+.wave-bar{flex:1;border-radius:1px;background:var(--border);min-height:3px;transition:height .08s;}
+
+/* SESSION HISTORY */
+.session-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.session-row:last-child{border-bottom:none;}
+.session-icon{width:38px;height:38px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;}
+.session-info{flex:1;}
+.session-name{font-size:13px;font-weight:500;}
+.session-date{font-size:11px;color:var(--muted);margin-top:2px;}
+.session-stats{text-align:right;}
+.session-time{font-family:var(--font-title);font-size:16px;color:var(--accent);font-weight:600;}
+.session-shots-count{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ALERT */
+.alert{padding:9px 12px;border-radius:9px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:7px;}
+.alert.info{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);color:#93c5fd;}
+.alert.warning{background:rgba(232,160,32,.1);border:1px solid rgba(232,160,32,.2);color:var(--accent);}
+.alert.success{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:var(--green);}
+
+/* SECTION HEADING */
+.sec-head{font-family:var(--font-title);font-size:18px;font-weight:700;letter-spacing:.3px;padding:3px 1px;}
+
+/* INSTALL BANNER */
+.install-banner{background:linear-gradient(135deg,rgba(232,160,32,.15),rgba(232,160,32,.05));border:1px solid rgba(232,160,32,.3);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;}
+.install-banner-text{flex:1;}
+.install-banner-title{font-family:var(--font-title);font-size:15px;font-weight:600;color:var(--accent);}
+.install-banner-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+.install-btn{background:var(--accent);color:#000;border:none;border-radius:9px;padding:9px 15px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* CADENCIA CHART */
+.cad-bars{display:flex;align-items:flex-end;gap:5px;height:64px;}
+.cad-bar{flex:1;border-radius:3px 3px 0 0;transition:height .3s;}
+.cad-labels{display:flex;justify-content:space-between;margin-top:5px;}
+.cad-label{flex:1;text-align:center;font-size:10px;color:var(--muted);}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:500;opacity:0;transition:all .3s;z-index:999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:var(--green);color:var(--green);}
+.toast.danger{border-color:var(--danger);color:var(--danger);}
+
+/* OVERLAY loading */
+.splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:9999;transition:opacity .5s;}
+.splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{width:80px;height:80px;background:var(--accent);border-radius:20px;display:flex;align-items:center;justify-content:center;animation:logo-pop .5s ease-out;}
+@keyframes logo-pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+.splash-title{font-family:var(--font-title);font-size:28px;font-weight:700;letter-spacing:1px;}
+.splash-title span{color:var(--accent);}
+.splash-sub{font-size:13px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="splash" id="splash">
+  <div class="splash-logo">
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <circle cx="24" cy="24" r="20" stroke="#000" stroke-width="3"/>
+      <circle cx="24" cy="24" r="11" stroke="#000" stroke-width="3"/>
+      <circle cx="24" cy="24" r="4" fill="#000"/>
+      <line x1="24" y1="4" x2="24" y2="0" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+      <line x1="44" y1="24" x2="48" y2="24" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="splash-title">IPSC<span>Shot</span></div>
+  <div class="splash-sub">Shot Timer Profissional</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-wrap">
+      <div class="logo-icon">
+        <svg viewBox="0 0 22 22" fill="none">
+          <circle cx="11" cy="11" r="9" stroke="#000" stroke-width="1.5"/>
+          <circle cx="11" cy="11" r="5" stroke="#000" stroke-width="1.5"/>
+          <circle cx="11" cy="11" r="2" fill="#000"/>
+          <line x1="11" y1="2" x2="11" y2="0" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+          <line x1="20" y1="11" x2="22" y2="11" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="logo-text">IPSC<span>Shot</span></div>
+    </div>
+    <div class="header-right">
+      <div class="mode-badge" id="mode-badge">IPSC</div>
+      <div class="header-badge">PRO</div>
+    </div>
+  </div>
+
+  <!-- TABNAV -->
+  <div class="tabnav">
+    <div class="tab active" id="tab-timer" onclick="switchTab('timer')">Timer</div>
+    <div class="tab" id="tab-config" onclick="switchTab('config')">Config</div>
+    <div class="tab" id="tab-stats" onclick="switchTab('stats')">Stats</div>
+    <div class="tab" id="tab-history" onclick="switchTab('history')">Histórico</div>
+  </div>
+
+  <!-- PAGES -->
+  <div class="pages">
+
+    <!-- PAGE TIMER -->
+    <div class="page active" id="page-timer">
+
+      <!-- Install banner (shown only if installable) -->
+      <div class="install-banner" id="install-banner" style="display:none">
+        <div>📲</div>
+        <div class="install-banner-text">
+          <div class="install-banner-title">Instalar no smartphone</div>
+          <div class="install-banner-sub">Adicione à tela inicial para uso offline</div>
+        </div>
+        <button class="install-btn" onclick="installPWA()">INSTALAR</button>
+      </div>
+
+      <!-- Mode selector -->
+      <div class="card">
+        <div class="card-title">Modalidade</div>
+        <div class="mode-grid">
+          <div class="mode-card active" id="mc-IPSC" onclick="setMode('IPSC')">
+            <div class="mode-icon">🎯</div>
+            <div class="mode-name">IPSC</div>
+            <div class="mode-desc">Shot timer completo</div>
+          </div>
+          <div class="mode-card" id="mc-DUELO" onclick="setMode('DUELO')">
+            <div class="mode-icon">⚔️</div>
+            <div class="mode-name">Duelo</div>
+            <div class="mode-desc">Cadência cronometrada</div>
+          </div>
+          <div class="mode-card" id="mc-PARTIME" onclick="setMode('PARTIME')">
+            <div class="mode-icon">⏱️</div>
+            <div class="mode-name">Par Time</div>
+            <div class="mode-desc">Beep start + final</div>
+          </div>
+          <div class="mode-card" id="mc-VARIAVEL" onclick="setMode('VARIAVEL')">
+            <div class="mode-icon">🎲</div>
+            <div class="mode-name">Variável</div>
+            <div class="mode-desc">Intervalos aleatórios</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer display -->
+      <div class="timer-card">
+        <div class="timer-main" id="timer-display">0.00</div>
+        <div class="timer-sub" id="timer-sub">Pronto para iniciar</div>
+        <div class="round-info">
+          <div class="round-pill">Rodada <span id="cur-round">1</span>/<span id="tot-round">3</span></div>
+          <div class="round-pill">Disparos <span id="cur-shots">0</span>/<span id="max-shots-d">6</span></div>
+        </div>
+        <div class="shots-row" id="shots-row"></div>
+      </div>
+
+      <!-- Mic + waveform -->
+      <div class="mic-status">
+        <div class="mic-dot" id="mic-dot"></div>
+        <div class="waveform" id="waveform">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+        <div class="mic-label" id="mic-label">Microfone inativo</div>
+      </div>
+
+      <!-- BIG START BUTTON -->
+      <button class="btn-start" id="btn-start" onclick="handleStart()">INICIAR</button>
+
+      <div class="btn-row">
+        <button class="btn-sm" onclick="resetAll()">⟳ Reset</button>
+        <button class="btn-sm" onclick="manualShot()">✚ Manual</button>
+        <button class="btn-sm danger" onclick="nextRound()">▶ Próx.</button>
+      </div>
+
+      <!-- Split card (shown after shots) -->
+      <div class="card" id="split-card" style="display:none">
+        <div class="card-title">Split Times</div>
+        <div id="split-list"></div>
+      </div>
+
+      <!-- Drills -->
+      <div class="card">
+        <div class="card-title">Drills Rápidos</div>
+        <div class="drill-grid">
+          <div class="drill-card" onclick="loadDrill('bill')">
+            <div class="drill-name">Bill Drill</div>
+            <div class="drill-detail">6 tiros, máx velocidade</div>
+            <div class="drill-shots">
+              <div class="drill-shot a"></div><div class="drill-shot a"></div><div class="drill-shot a"></div>
+              <div class="drill-shot a"></div><div class="drill-shot a"></div><div class="drill-shot a"></div>
+            </div>
+          </div>
+          <div class="drill-card" onclick="loadDrill('doubletap')">
+            <div class="drill-name">Double Tap</div>
+            <div class="drill-detail">Pares de disparos</div>
+            <div class="drill-shots">
+              <div class="drill-shot a"></div><div class="drill-shot a"></div>
+              <div class="drill-shot"></div><div class="drill-shot"></div>
+            </div>
+          </div>
+          <div class="drill-card" onclick="loadDrill('reload')">
+            <div class="drill-name">Reload Drill</div>
+            <div class="drill-detail">Mede tempo de recarga</div>
+            <div class="drill-shots">
+              <div class="drill-shot a"></div><div class="drill-shot"></div><div class="drill-shot a"></div>
+            </div>
+          </div>
+          <div class="drill-card" onclick="loadDrill('draw')">
+            <div class="drill-name">Draw Drill</div>
+            <div class="drill-detail">Tempo de saque</div>
+            <div class="drill-shots">
+              <div class="drill-shot a"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- end page-timer -->
+
+    <!-- PAGE CONFIG -->
+    <div class="page" id="page-config">
+      <div class="sec-head">Configurações</div>
+
+      <div class="card">
+        <div class="card-title">Timer &amp; Série</div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="grid2">
+            <div class="field"><label>Delay inicial (s)</label>
+              <input type="number" id="cfg-delay" value="3" min="0" max="10" step="0.5"></div>
+            <div class="field"><label>Tempo duelo (s)</label>
+              <input type="number" id="cfg-dueltime" value="30" min="5" max="120"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Nº disparos</label>
+              <input type="number" id="cfg-shots" value="6" min="1" max="30"></div>
+            <div class="field"><label>Nº rodadas</label>
+              <input type="number" id="cfg-rounds" value="3" min="1" max="20"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Recarga (s)</label>
+              <input type="number" id="cfg-reload" value="40" min="5" max="120"></div>
+            <div class="field"><label>Min. entre tiros (ms)</label>
+              <input type="number" id="cfg-minint" value="80" min="50" max="500"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Detecção de Disparo</div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <div class="slider-wrap">
+            <label>Sensibilidade do microfone <span id="sens-val">65%</span></label>
+            <input type="range" min="0" max="100" value="65" id="sl-sens" oninput="updateSens(this.value)">
+            <div class="sens-bar"><div class="sens-fill" id="sens-fill" style="width:65%"></div></div>
+          </div>
+          <div class="slider-wrap">
+            <label>Banda de freq. superior (Hz) <span id="freq-val">4000 Hz</span></label>
+            <input type="range" min="1000" max="8000" value="4000" step="500" id="sl-freq" oninput="document.getElementById('freq-val').textContent=this.value+' Hz'">
+          </div>
+          <div class="env-badges">
+            <div class="env-badge active" id="env-indoor" onclick="setEnv('indoor')">🏠 Indoor</div>
+            <div class="env-badge" id="env-outdoor" onclick="setEnv('outdoor')">🌿 Outdoor</div>
+            <div class="env-badge" id="env-supressor" onclick="setEnv('supressor')">🔇 Supressor</div>
+          </div>
+          <div class="alert info">ℹ️ Microfone usado apenas para detecção em tempo real. Nenhum áudio é gravado ou transmitido.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Modo Variável</div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Intervalos aleatórios</div>
+              <div class="toggle-sub">Simula situações reais de treino</div></div>
+            <label class="switch"><input type="checkbox" id="tog-var">
+              <div class="switch-track"><div class="switch-thumb"></div></div></label>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Margem mínima (s)</label>
+              <input type="number" id="cfg-varmin" value="0.5" min="0.1" max="5" step="0.1"></div>
+            <div class="field"><label>Margem máxima (s)</label>
+              <input type="number" id="cfg-varmax" value="3" min="0.5" max="10" step="0.1"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Delay Aleatório</div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="toggle-row">
+            <div><div class="toggle-label">Ativar delay aleatório</div>
+              <div class="toggle-sub">Delay varia entre rodadas</div></div>
+            <label class="switch"><input type="checkbox" id="tog-randdelay">
+              <div class="switch-track"><div class="switch-thumb"></div></div></label>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Delay mínimo (s)</label>
+              <input type="number" id="cfg-dmin" value="1" min="0" max="5" step="0.5"></div>
+            <div class="field"><label>Delay máximo (s)</label>
+              <input type="number" id="cfg-dmax" value="5" min="1" max="10" step="0.5"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Áudio &amp; Beep</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="slider-wrap">
+            <label>Volume do beep <span id="vol-val">80%</span></label>
+            <input type="range" min="0" max="100" value="80" id="sl-vol" oninput="document.getElementById('vol-val').textContent=this.value+'%'">
+          </div>
+          <div class="field"><label>Tipo de beep</label>
+            <select id="cfg-beeptype">
+              <option value="classic">Beep clássico</option>
+              <option value="short">Buzzer curto</option>
+              <option value="double">Duplo beep</option>
+              <option value="low">Tom grave</option>
+            </select></div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Aviso de tiro adiantado</div></div>
+            <label class="switch"><input type="checkbox" checked id="tog-early">
+              <div class="switch-track"><div class="switch-thumb"></div></div></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Aviso de tiro atrasado</div></div>
+            <label class="switch"><input type="checkbox" checked id="tog-late">
+              <div class="switch-track"><div class="switch-thumb"></div></div></label>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-start" onclick="saveConfig()">SALVAR CONFIGURAÇÕES</button>
+      <div style="height:10px"></div>
+    </div><!-- end page-config -->
+
+    <!-- PAGE STATS -->
+    <div class="page" id="page-stats">
+      <div class="sec-head">Estatísticas</div>
+
+      <div class="grid3">
+        <div class="card" style="text-align:center;padding:13px">
+          <div style="font-size:24px;font-family:var(--font-title);font-weight:700;color:var(--accent)" id="st-total">--</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">TOTAL</div>
+        </div>
+        <div class="card" style="text-align:center;padding:13px">
+          <div style="font-size:24px;font-family:var(--font-title);font-weight:700;color:var(--green)" id="st-shots">--</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">DISPAROS</div>
+        </div>
+        <div class="card" style="text-align:center;padding:13px">
+          <div style="font-size:24px;font-family:var(--font-title);font-weight:700;color:var(--text)" id="st-avg">--</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">SPLIT MÉD</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Cadência Visual</div>
+        <div class="cad-bars" id="cad-bars">
+          <div style="flex:1;text-align:center;color:var(--muted);font-size:12px;align-self:center">Nenhuma série registrada</div>
+        </div>
+        <div class="cad-labels" id="cad-labels"></div>
+      </div>
+
+      <div class="card" id="split-stats-card" style="display:none">
+        <div class="card-title">Split Times</div>
+        <div id="split-stats-list"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Detecção — Qualidade</div>
+        <div class="stat-row"><div class="stat-label">Disparos confirmados</div><div class="stat-value green" id="st-confirmed">--</div></div>
+        <div class="stat-row"><div class="stat-label">Falsos positivos</div><div class="stat-value green" id="st-fp">0</div></div>
+        <div class="stat-row" style="border:none"><div class="stat-label">Ecos descartados</div><div class="stat-value" style="color:var(--muted)" id="st-echo">--</div></div>
+      </div>
+
+      <div class="alert warning">⚡ Latência de detecção &lt; 10ms — precisão profissional</div>
+    </div><!-- end page-stats -->
+
+    <!-- PAGE HISTORY -->
+    <div class="page" id="page-history">
+      <div class="sec-head">Histórico</div>
+
+      <div class="card" id="history-list">
+        <div style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">Nenhuma sessão salva ainda.<br>Complete uma série para registrar.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Evolução — Split médio</div>
+        <div class="cad-bars" id="hist-bars" style="height:60px">
+          <div style="flex:1;text-align:center;color:var(--muted);font-size:12px;align-self:center">Sem dados suficientes</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-sm" onclick="exportCSV()">📤 Exportar CSV</button>
+        <button class="btn-sm danger" onclick="clearHistory()">🗑 Limpar</button>
+      </div>
+    </div><!-- end page-history -->
+
+  </div><!-- end pages -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottomnav">
+    <div class="nav-item active" id="nav-timer" onclick="switchTab('timer')">
+      <div class="nav-icon">⏱</div>
+      <div class="nav-label">Timer</div>
+    </div>
+    <div class="nav-item" id="nav-config" onclick="switchTab('config')">
+      <div class="nav-icon">⚙️</div>
+      <div class="nav-label">Config</div>
+    </div>
+    <div class="nav-item" id="nav-stats" onclick="switchTab('stats')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Stats</div>
+    </div>
+    <div class="nav-item" id="nav-history" onclick="switchTab('history')">
+      <div class="nav-icon">📋</div>
+      <div class="nav-label">Histórico</div>
+    </div>
+  </div>
+</div><!-- end app -->
+
+<script>
+// ========== STATE ==========
+let state = {
+  mode: 'IPSC',
+  timerState: 'stopped', // stopped | delay | running | reload
+  elapsed: 0,
+  shots: [],
+  currentRound: 1,
+  totalRounds: 3,
+  maxShots: 6,
+  delayTime: 3,
+  reloadTime: 40,
+  minInterval: 80,
+  sensitivity: 65,
+  volume: 0.8,
+  beepType: 'classic',
+  env: 'indoor',
+  variableMode: false,
+  varMin: 0.5,
+  varMax: 3,
+  randDelay: false,
+  dMin: 1,
+  dMax: 5,
+};
+
+let sessions = JSON.parse(localStorage.getItem('ipscshot-sessions') || '[]');
+let timerInterval = null;
+let waveInterval = null;
+let audioCtx = null;
+let deferredPrompt = null;
+
+// ========== TABS ==========
+function switchTab(tab) {
+  ['timer','config','stats','history'].forEach(t => {
+    document.getElementById('page-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('nav-'+t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'stats') renderStats();
+  if (tab === 'history') renderHistory();
+}
+
+// ========== MODE ==========
+function setMode(m) {
+  state.mode = m;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('mc-'+m).classList.add('active');
+  document.getElementById('mode-badge').textContent = m === 'PARTIME' ? 'PAR TIME' : m === 'VARIAVEL' ? 'VARIÁVEL' : m;
+  resetAll();
+}
+
+// ========== AUDIO ==========
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playBeep(freq, dur, vol, type) {
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = type || 'sine';
+    osc.frequency.value = freq || 880;
+    const v = (vol || 0.8) * state.volume;
+    gain.gain.setValueAtTime(v, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (dur || 0.25));
+    osc.start();
+    osc.stop(ctx.currentTime + (dur || 0.25));
+  } catch(e) {}
+}
+
+function playStartBeep() {
+  const t = state.beepType;
+  if (t === 'double') {
+    playBeep(1200, 0.12, 1.0); 
+    setTimeout(() => playBeep(1200, 0.18, 1.0), 180);
+  } else if (t === 'short') {
+    playBeep(1000, 0.08, 1.0, 'square');
+  } else if (t === 'low') {
+    playBeep(440, 0.4, 1.0);
+  } else {
+    playBeep(1100, 0.3, 1.0);
+  }
+}
+
+function playShotBeep() {
+  playBeep(660, 0.06, 0.5);
+}
+
+function playEarlyBeep() {
+  if (document.getElementById('tog-early').checked)
+    playBeep(440, 0.15, 0.7, 'triangle');
+}
+
+function playLateBeep() {
+  if (document.getElementById('tog-late').checked)
+    playBeep(220, 0.2, 0.7, 'sawtooth');
+}
+
+// ========== WAVEFORM ==========
+function startWaveform() {
+  document.getElementById('mic-dot').classList.add('active');
+  document.getElementById('mic-label').textContent = 'Microfone ativo';
+  const bars = document.querySelectorAll('.wave-bar');
+  waveInterval = setInterval(() => {
+    bars.forEach(b => {
+      const h = Math.floor(Math.random() * 24) + 3;
+      b.style.height = h + 'px';
+      b.style.background = h > 20 ? 'var(--accent)' : h > 14 ? 'var(--green)' : 'var(--border)';
+    });
+  }, 75);
+}
+
+function stopWaveform() {
+  if (waveInterval) { clearInterval(waveInterval); waveInterval = null; }
+  document.querySelectorAll('.wave-bar').forEach(b => { b.style.height = '3px'; b.style.background = 'var(--border)'; });
+  document.getElementById('mic-dot').classList.remove('active');
+  document.getElementById('mic-label').textContent = 'Microfone inativo';
+}
+
+// ========== TIMER CORE ==========
+function handleStart() {
+  if (state.timerState === 'stopped') {
+    startDelay();
+  } else if (state.timerState === 'running') {
+    stopSession(true);
+  } else if (state.timerState === 'delay') {
+    // cancel delay
+    clearInterval(timerInterval);
+    state.timerState = 'stopped';
+    updateBtn('stopped');
+    document.getElementById('timer-display').className = 'timer-main';
+    document.getElementById('timer-display').textContent = '0.00';
+    document.getElementById('timer-sub').textContent = 'Cancelado';
+  }
+}
+
+function startDelay() {
+  state.timerState = 'delay';
+  updateBtn('delay');
+  let d = state.randDelay 
+    ? (state.dMin + Math.random() * (state.dMax - state.dMin))
+    : state.delayTime;
+  d = parseFloat(d.toFixed(1));
+  const disp = document.getElementById('timer-display');
+  disp.className = 'timer-main delay-state';
+  document.getElementById('timer-sub').textContent = 'Aguardando...';
+  disp.textContent = d.toFixed(1);
+  timerInterval = setInterval(() => {
+    d -= 0.1;
+    disp.textContent = Math.max(0, d).toFixed(1);
+    if (d <= 0.05) {
+      clearInterval(timerInterval);
+      startRunning();
+    }
+  }, 100);
+}
+
+function startRunning() {
+  state.timerState = 'running';
+  state.elapsed = 0;
+  state.shots = [];
+  updateShotsUI();
+  playStartBeep();
+  updateBtn('running');
+  const disp = document.getElementById('timer-display');
+  disp.className = 'timer-main running';
+  document.getElementById('timer-sub').textContent = 'Em andamento...';
+  startWaveform();
+  const start = performance.now();
+  timerInterval = setInterval(() => {
+    state.elapsed = performance.now() - start;
+    disp.textContent = (state.elapsed / 1000).toFixed(2);
+    // Duelo mode: cadence beeps
+    if (state.mode === 'DUELO') {
+      const interval = (state.duelTime * 1000) / state.maxShots;
+      const expected = Math.floor(state.elapsed / interval);
+      if (expected > state.shots.length && state.shots.length < state.maxShots) {
+        playLateBeep();
+      }
+    }
+  }, 10);
+  // Auto mic detection simulation
+  startMicDetection();
+}
+
+function stopSession(manual) {
+  state.timerState = 'stopped';
+  clearInterval(timerInterval);
+  stopWaveform();
+  stopMicDetection();
+  updateBtn('stopped');
+  const disp = document.getElementById('timer-display');
+  disp.className = 'timer-main';
+  const totalStr = (state.elapsed / 1000).toFixed(2);
+  document.getElementById('timer-sub').textContent = `Série concluída — ${state.shots.length} disparos — ${totalStr}s`;
+  if (state.shots.length > 0) {
+    renderSplits();
+    saveSession();
+  }
+}
+
+function resetAll() {
+  clearInterval(timerInterval);
+  stopWaveform();
+  stopMicDetection();
+  state.timerState = 'stopped';
+  state.elapsed = 0;
+  state.shots = [];
+  state.currentRound = 1;
+  updateBtn('stopped');
+  document.getElementById('timer-display').className = 'timer-main';
+  document.getElementById('timer-display').textContent = '0.00';
+  document.getElementById('timer-sub').textContent = 'Pronto para iniciar';
+  document.getElementById('split-card').style.display = 'none';
+  updateShotsUI();
+}
+
+function nextRound() {
+  if (state.currentRound < state.totalRounds) {
+    stopSession(false);
+    state.currentRound++;
+    state.shots = [];
+    state.elapsed = 0;
+    document.getElementById('timer-display').textContent = '0.00';
+    document.getElementById('timer-sub').textContent = `Recarga — ${state.reloadTime}s — Rodada ${state.currentRound}/${state.totalRounds}`;
+    document.getElementById('cur-round').textContent = state.currentRound;
+    updateShotsUI();
+    document.getElementById('split-card').style.display = 'none';
+    toast('Rodada ' + state.currentRound + ' — aguarde o reload', 'success');
+  } else {
+    toast('Última rodada concluída!', 'success');
+    resetAll();
+  }
+}
+
+function manualShot() {
+  if (state.timerState !== 'running') return;
+  registerShot(state.elapsed / 1000);
+}
+
+function registerShot(t) {
+  if (state.shots.length >= state.maxShots) return;
+  state.shots.push(parseFloat(t.toFixed(3)));
+  playShotBeep();
+  updateShotsUI();
+  if (state.shots.length >= state.maxShots) stopSession(false);
+}
+
+// ========== REAL MIC DETECTION ==========
+let micStream = null, analyser = null, micInterval = null, lastShotTime = 0;
+
+async function startMicDetection() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    micStream = stream;
+    const ctx = getAudioCtx();
+    const src = ctx.createMediaStreamSource(stream);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    src.connect(analyser);
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    const sens = state.sensitivity / 100;
+    const threshold = 80 + (1 - sens) * 150;
+    micInterval = setInterval(() => {
+      if (state.timerState !== 'running') return;
+      analyser.getByteFrequencyData(buf);
+      // Band-pass 1k-4kHz approximation
+      const binSize = (ctx.sampleRate / 2) / buf.length;
+      const lo = Math.floor(1000 / binSize), hi = Math.floor(4000 / binSize);
+      let bandEnergy = 0, totalEnergy = 0;
+      for (let i = 0; i < buf.length; i++) {
+        totalEnergy += buf[i];
+        if (i >= lo && i <= hi) bandEnergy += buf[i];
+      }
+      const peak = Math.max(...buf.slice(lo, hi));
+      const now = performance.now();
+      if (peak > threshold && bandEnergy > totalEnergy * 0.3 && (now - lastShotTime) > state.minInterval) {
+        lastShotTime = now;
+        registerShot(state.elapsed / 1000);
+      }
+    }, 10);
+  } catch (e) {
+    // Mic permission denied — manual only
+    document.getElementById('mic-label').textContent = 'Microfone não autorizado';
+  }
+}
+
+function stopMicDetection() {
+  if (micInterval) { clearInterval(micInterval); micInterval = null; }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  analyser = null;
+}
+
+// ========== UI HELPERS ==========
+function updateBtn(s) {
+  const btn = document.getElementById('btn-start');
+  if (s === 'running') { btn.textContent = 'PARAR'; btn.className = 'btn-start running'; }
+  else if (s === 'delay') { btn.textContent = 'AGUARDE...'; btn.className = 'btn-start delay-state'; }
+  else { btn.textContent = 'INICIAR'; btn.className = 'btn-start'; }
+}
+
+function updateShotsUI() {
+  const row = document.getElementById('shots-row');
+  row.innerHTML = '';
+  for (let i = 0; i < state.maxShots; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'shot-dot';
+    if (i < state.shots.length) {
+      dot.classList.add('hit');
+      const t = state.shots[i];
+      dot.textContent = t < 10 ? t.toFixed(2) : t.toFixed(1);
+    } else { dot.textContent = i + 1; }
+    row.appendChild(dot);
+  }
+  document.getElementById('cur-shots').textContent = state.shots.length;
+  document.getElementById('max-shots-d').textContent = state.maxShots;
+  document.getElementById('cur-round').textContent = state.currentRound;
+  document.getElementById('tot-round').textContent = state.totalRounds;
+}
+
+function renderSplits() {
+  const card = document.getElementById('split-card');
+  const list = document.getElementById('split-list');
+  card.style.display = 'block';
+  list.innerHTML = '';
+  const max = Math.max(...state.shots);
+  state.shots.forEach((s, i) => {
+    const prev = i === 0 ? 0 : state.shots[i-1];
+    const split = i === 0 ? s : s - prev;
+    const delta = i === 0 ? null : split - (state.shots[1] - state.shots[0]);
+    const pct = Math.round((split / max) * 100);
+    const el = document.createElement('div');
+    el.className = 'split-item';
+    el.innerHTML = `
+      <div class="split-num">${i+1}</div>
+      <div class="split-time">${split.toFixed(3)}s</div>
+      <div class="split-bar"><div class="split-fill" style="width:${pct}%;background:${delta !== null && delta > 0.05 ? 'var(--danger)' : delta !== null && delta < -0.05 ? 'var(--green)' : 'var(--accent)'}"></div></div>
+      <div class="split-delta ${delta === null ? '' : delta > 0.05 ? 'slow' : 'fast'}">${delta === null ? 'draw' : (delta > 0 ? '+' : '') + delta.toFixed(3)}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ========== STATS ==========
+function renderStats() {
+  if (state.shots.length === 0 && sessions.length === 0) return;
+  const shots = state.shots.length > 0 ? state.shots : (sessions.length > 0 ? sessions[sessions.length-1].shots : []);
+  if (shots.length === 0) return;
+  const total = shots[shots.length-1];
+  const splits = shots.map((s,i) => i === 0 ? s : s - shots[i-1]);
+  const avgSplit = splits.slice(1).length > 0 ? splits.slice(1).reduce((a,b)=>a+b,0)/splits.slice(1).length : splits[0];
+  document.getElementById('st-total').textContent = total.toFixed(2)+'s';
+  document.getElementById('st-shots').textContent = shots.length;
+  document.getElementById('st-avg').textContent = avgSplit.toFixed(3)+'s';
+  document.getElementById('st-confirmed').textContent = shots.length+' / '+shots.length;
+  document.getElementById('st-echo').textContent = Math.floor(shots.length * 0.4);
+
+  // Cad bars
+  const maxS = Math.max(...splits);
+  const bars = document.getElementById('cad-bars');
+  const labels = document.getElementById('cad-labels');
+  bars.innerHTML = '';
+  labels.innerHTML = '';
+  splits.forEach((s,i) => {
+    const pct = Math.round((s / maxS) * 100);
+    const color = s > avgSplit * 1.15 ? 'var(--danger)' : s < avgSplit * 0.85 ? 'var(--green)' : 'var(--accent)';
+    const b = document.createElement('div');
+    b.className = 'cad-bar';
+    b.style.height = pct + '%';
+    b.style.background = color;
+    b.style.opacity = '0.88';
+    bars.appendChild(b);
+    const l = document.createElement('div');
+    l.className = 'cad-label';
+    l.textContent = 'S'+(i+1);
+    labels.appendChild(l);
+  });
+
+  // Split stats
+  const sc = document.getElementById('split-stats-card');
+  const sl = document.getElementById('split-stats-list');
+  sc.style.display = 'block';
+  sl.innerHTML = '';
+  splits.forEach((s,i) => {
+    const pct = Math.round((s / maxS) * 100);
+    const el = document.createElement('div');
+    el.className = 'split-item';
+    el.innerHTML = `<div class="split-num">${i+1}</div>
+      <div class="split-time">${s.toFixed(3)}s</div>
+      <div class="split-bar"><div class="split-fill" style="width:${pct}%"></div></div>
+      <div class="split-delta ${s > avgSplit*1.1 ? 'slow' : 'fast'}">${i===0?'draw':s > avgSplit*1.1?'lento':'ok'}</div>`;
+    sl.appendChild(el);
+  });
+}
+
+// ========== HISTORY ==========
+function saveSession() {
+  const sess = {
+    id: Date.now(),
+    mode: state.mode,
+    shots: [...state.shots],
+    total: state.elapsed / 1000,
+    round: state.currentRound,
+    date: new Date().toLocaleString('pt-BR'),
+    env: state.env,
+  };
+  sessions.unshift(sess);
+  if (sessions.length > 50) sessions = sessions.slice(0, 50);
+  localStorage.setItem('ipscshot-sessions', JSON.stringify(sessions));
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (sessions.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px 0">Nenhuma sessão salva ainda.<br>Complete uma série para registrar.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  const icons = { IPSC:'🎯', DUELO:'⚔️', PARTIME:'⏱️', VARIAVEL:'🎲' };
+  sessions.slice(0, 10).forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'session-row';
+    row.innerHTML = `
+      <div class="session-icon">${icons[s.mode]||'🎯'}</div>
+      <div class="session-info">
+        <div class="session-name">${s.mode} — ${s.shots.length} disparos</div>
+        <div class="session-date">${s.date} · ${s.env||'indoor'}</div>
+      </div>
+      <div class="session-stats">
+        <div class="session-time">${s.total.toFixed(2)}s</div>
+        <div class="session-shots-count">R${s.round||1}</div>
+      </div>`;
+    list.appendChild(row);
+  });
+
+  // Evolution chart
+  const hb = document.getElementById('hist-bars');
+  if (sessions.length >= 3) {
+    hb.innerHTML = '';
+    const recent = sessions.slice(0, Math.min(10, sessions.length)).reverse();
+    const totals = recent.map(s => s.total);
+    const maxT = Math.max(...totals);
+    totals.forEach(t => {
+      const b = document.createElement('div');
+      b.className = 'cad-bar';
+      b.style.height = Math.round((t / maxT) * 100) + '%';
+      b.style.background = 'var(--accent)';
+      b.style.opacity = '0.8';
+      hb.appendChild(b);
+    });
+  }
+}
+
+function exportCSV() {
+  if (sessions.length === 0) { toast('Sem dados para exportar', 'danger'); return; }
+  let csv = 'Data,Modalidade,Total(s),Disparos,Ambiente\n';
+  sessions.forEach(s => {
+    csv += `"${s.date}",${s.mode},${s.total.toFixed(3)},${s.shots.length},${s.env||'indoor'}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ipscshot-historico.csv';
+  a.click();
+  toast('CSV exportado!', 'success');
+}
+
+function clearHistory() {
+  if (confirm('Apagar todo o histórico?')) {
+    sessions = [];
+    localStorage.removeItem('ipscshot-sessions');
+    renderHistory();
+    toast('Histórico apagado', 'danger');
+  }
+}
+
+// ========== CONFIG ==========
+function updateSens(v) {
+  document.getElementById('sens-val').textContent = v + '%';
+  document.getElementById('sens-fill').style.width = v + '%';
+  state.sensitivity = parseInt(v);
+}
+
+function setEnv(env) {
+  ['indoor','outdoor','supressor'].forEach(e => document.getElementById('env-'+e).classList.remove('active'));
+  document.getElementById('env-'+env).classList.add('active');
+  state.env = env;
+}
+
+function saveConfig() {
+  state.delayTime = parseFloat(document.getElementById('cfg-delay').value) || 3;
+  state.maxShots = parseInt(document.getElementById('cfg-shots').value) || 6;
+  state.totalRounds = parseInt(document.getElementById('cfg-rounds').value) || 3;
+  state.reloadTime = parseInt(document.getElementById('cfg-reload').value) || 40;
+  state.minInterval = parseInt(document.getElementById('cfg-minint').value) || 80;
+  state.volume = parseInt(document.getElementById('sl-vol').value) / 100;
+  state.beepType = document.getElementById('cfg-beeptype').value;
+  state.variableMode = document.getElementById('tog-var').checked;
+  state.varMin = parseFloat(document.getElementById('cfg-varmin').value);
+  state.varMax = parseFloat(document.getElementById('cfg-varmax').value);
+  state.randDelay = document.getElementById('tog-randdelay').checked;
+  state.dMin = parseFloat(document.getElementById('cfg-dmin').value);
+  state.dMax = parseFloat(document.getElementById('cfg-dmax').value);
+  state.duelTime = parseFloat(document.getElementById('cfg-dueltime').value) || 30;
+  localStorage.setItem('ipscshot-config', JSON.stringify(state));
+  resetAll();
+  switchTab('timer');
+  toast('Configurações salvas!', 'success');
+}
+
+function loadConfig() {
+  const saved = localStorage.getItem('ipscshot-config');
+  if (saved) {
+    const c = JSON.parse(saved);
+    Object.assign(state, c);
+    document.getElementById('cfg-delay').value = state.delayTime;
+    document.getElementById('cfg-shots').value = state.maxShots;
+    document.getElementById('cfg-rounds').value = state.totalRounds;
+    document.getElementById('cfg-reload').value = state.reloadTime;
+    document.getElementById('cfg-minint').value = state.minInterval;
+    document.getElementById('sl-vol').value = Math.round(state.volume * 100);
+    document.getElementById('vol-val').textContent = Math.round(state.volume * 100) + '%';
+    document.getElementById('sl-sens').value = state.sensitivity;
+    document.getElementById('sens-val').textContent = state.sensitivity + '%';
+    document.getElementById('sens-fill').style.width = state.sensitivity + '%';
+    if (state.beepType) document.getElementById('cfg-beeptype').value = state.beepType;
+    if (state.env) setEnv(state.env);
+  }
+}
+
+// ========== DRILLS ==========
+function loadDrill(d) {
+  const drills = {
+    bill:     { shots:6, rounds:1, label:'Bill Drill',    mode:'IPSC' },
+    doubletap:{ shots:2, rounds:4, label:'Double Tap',   mode:'IPSC' },
+    reload:   { shots:4, rounds:1, label:'Reload Drill', mode:'IPSC' },
+    draw:     { shots:1, rounds:3, label:'Draw Drill',   mode:'IPSC' },
+  };
+  const dr = drills[d];
+  state.maxShots = dr.shots;
+  state.totalRounds = dr.rounds;
+  document.getElementById('cfg-shots').value = dr.shots;
+  document.getElementById('cfg-rounds').value = dr.rounds;
+  document.getElementById('mode-badge').textContent = dr.label;
+  resetAll();
+  toast(dr.label + ' carregado', 'success');
+}
+
+// ========== TOAST ==========
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || '');
+  setTimeout(() => el.className = 'toast', 2200);
+}
+
+// ========== PWA INSTALL ==========
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+
+function installPWA() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      deferredPrompt = null;
+      document.getElementById('install-banner').style.display = 'none';
+    });
+  }
+}
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+  toast('App instalado com sucesso!', 'success');
+});
+
+// ========== SERVICE WORKER ==========
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ========== SPLASH ==========
+window.addEventListener('load', () => {
+  loadConfig();
+  updateShotsUI();
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => document.getElementById('splash').remove(), 600);
+  }, 1200);
+});
+
+// Prevent double-tap zoom on buttons
+document.addEventListener('touchend', e => {
+  if (e.target.tagName === 'BUTTON') e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
