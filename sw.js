@@ -1,9 +1,9 @@
 const CACHE_NAME = 'ipscshot-v1';
 const ASSETS = [
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  '/ipscshot/index.html',
+  '/ipscshot/manifest.json',
+  '/ipscshot/icons/icon-192.png',
+  '/ipscshot/icons/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
